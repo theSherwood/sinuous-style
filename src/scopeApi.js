@@ -55,13 +55,23 @@ export default function scopeApi(api, html, svg, root) {
   */
   function injectScopeName(...args) {
     let obj = args[1] ? args[1] : {};
-    obj.class = obj.class ? obj.class + " " + scopeName : scopeName;
+    let baseClass = obj.class || "";
+    /*
+      Set the current value of `scopeName` to a variable so that the changing 
+      `scopeName` variable (in the case that the `baseClass` is a function) 
+      is not captured by the closure.
+    */
+    let scope = scopeName;
+    obj.class =
+      typeof baseClass === "function"
+        ? () => baseClass() + " " + scope
+        : baseClass + " " + scope;
     args[1] = obj;
     return args;
   }
 
   // Creates a new `html` or `svg` that propagate the scope
-  function respectScoping(fn) {
+  function propagateScope(fn) {
     return (...args) => {
       // If a new scopeName is set...
       if (args[0][0] === "" && typeof args[1] === "string") {
@@ -80,11 +90,11 @@ export default function scopeApi(api, html, svg, root) {
     };
   }
 
-  const respectScopingHtml = respectScoping(html);
-  const respectScopingSvg = respectScoping(svg);
+  const propagateScopeHtml = propagateScope(html);
+  const propagateScopeSvg = propagateScope(svg);
 
   // Creates a new `html` and `svg` that block scope
-  function blockScoping(fn) {
+  function blockScope(fn) {
     return (...args) => {
       let outerScopeName = scopeName;
       // Create new, empty scope...
@@ -97,13 +107,13 @@ export default function scopeApi(api, html, svg, root) {
     };
   }
 
-  const blockScopingHtml = blockScoping(html);
-  const blockScopingSvg = blockScoping(svg);
+  const blockScopeHtml = blockScope(html);
+  const blockScopeSvg = blockScope(svg);
 
   return {
-    shtml: respectScopingHtml,
-    ssvg: respectScopingSvg,
-    html: blockScopingHtml,
-    svg: blockScopingSvg,
+    shtml: propagateScopeHtml,
+    ssvg: propagateScopeSvg,
+    html: blockScopeHtml,
+    svg: blockScopeSvg,
   };
 }
