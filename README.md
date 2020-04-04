@@ -16,7 +16,7 @@ Run the following inside your project directory:
 
 At present, there is no configuration. You can use it wherever you are using [Sinuous](https://github.com/luwes/sinuous). It's possible this may change to make it more flexible.
 
-[Example Sandbox](https://codesandbox.io/s/sinuous-style-esm-tkf5d)
+[Example CodeSandbox](https://codesandbox.io/s/sinuous-style-esm-tkf5d)
 
 ### CDN
 
@@ -43,7 +43,7 @@ let { shtml, ssvg, html, svg } = window.sinuousStyle(
 );
 ```
 
-[Example Codesandbox](https://codesandbox.io/s/sinuous-style-cdn-szdbi)
+[Example CodeSandbox](https://codesandbox.io/s/sinuous-style-cdn-szdbi)
 
 ## Usage
 
