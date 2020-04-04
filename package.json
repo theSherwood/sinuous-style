@@ -1,0 +1,28 @@
+{
+  "name": "sinuous-style",
+  "version": "0.1.0",
+  "description": "Scoped styling for your Sinuous application",
+  "main": "./src/index.js",
+  "keywords": [
+    "sinuous",
+    "reactive",
+    "functional",
+    "scoped",
+    "styles",
+    "ui"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "prepublishOnly": "rollup -c"
+  },
+  "homepage": "https://github.com/theSherwood/sinuous-style",
+  "author": "Adam Sherwood <adam.the.sherwood@gmail.com>",
+  "license": "MIT",
+  "peerDependencies": {
+    "sinuous": "^0.27.0"
+  },
+  "devDependencies": {
+    "rollup": "^1.31.0",
+    "rollup-plugin-terser": "^5.2.0"
+  }
+}
