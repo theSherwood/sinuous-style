@@ -1,3 +1,13 @@
+// Token types
+const RULE_BLOCK = 1;
+const COMMA = 2;
+const AT_RULE = 3;
+const WHITESPACE = 4;
+const LIMITER = 5;
+const FUNCTION = 6;
+const SELECTOR = 7;
+const END = 8;
+
 /**
  * Tokenizes an array of style strings from a <style /> element.
  * Style elements can contain observables (or other values),
@@ -10,7 +20,7 @@
  * or other css entities will lead to unexpected behavior.
  *
  * @param {Array} styles - An array of strings potentially interspersed with observables and other values
- * @return {Array} An array of tokens: Rule-Block | Comma | @-Rule | Whitespace | Limiter | Selector
+ * @return {Array} An array of tokens: RULE_BLOCK | COMMA | AT_RULE | WHITESPACE | LIMITER | FUNCTION | SELECTOR
  */
 function tokenize(styles) {
   styles = styles.flatMap((section) =>
@@ -38,10 +48,10 @@ function tokenize(styles) {
       if (chars.length) {
         pushToken();
       }
-      tokens.push({ token: char, type: "Function" });
+      tokens.push({ token: char, type: FUNCTION });
     } else if (bracketStack) {
       if (!chars.length) {
-        type = "Rule-Block";
+        type = RULE_BLOCK;
       }
       chars.push(char);
       if (char === "{") {
@@ -58,43 +68,43 @@ function tokenize(styles) {
           pushToken();
         }
         bracketStack++;
-        type = "Rule-Block";
+        type = RULE_BLOCK;
         chars.push(char);
       } else if (char === ",") {
-        if (chars.length && type !== "@-Rule") {
+        if (chars.length && type !== AT_RULE) {
           pushToken();
         }
-        type = "Comma";
+        type = COMMA;
         chars.push(char);
         pushToken();
-      } else if (">+~".includes(char) && type !== "Selector") {
-        if (chars.length && type !== "@-Rule") {
+      } else if (">+~".includes(char) && type !== SELECTOR) {
+        if (chars.length && type !== AT_RULE) {
           pushToken();
-          tokens.push({ token: char, type: "Limiter" });
+          tokens.push({ token: char, type: LIMITER });
         } else {
           chars.push(char);
         }
       } else if (" \n\t\r".includes(char)) {
-        if (chars.length && !["Whitespace", "@-Rule"].includes(type)) {
+        if (chars.length && ![WHITESPACE, AT_RULE].includes(type)) {
           pushToken();
         }
-        type = "Whitespace";
+        type = WHITESPACE;
         chars.push(char);
       } else if (char === "@") {
         if (chars.length) {
           pushToken();
         }
-        type = "@-Rule";
+        type = AT_RULE;
         chars.push(char);
       } else {
         if (!chars.length) {
-          type = "Selector";
+          type = SELECTOR;
           chars.push(char);
-        } else if (["Selector", "@-Rule"].includes(type)) {
+        } else if ([SELECTOR, AT_RULE].includes(type)) {
           chars.push(char);
         } else {
           pushToken();
-          type = "Selector";
+          type = SELECTOR;
           chars.push(char);
         }
       }
@@ -136,16 +146,16 @@ function insertScopeName(selector, scopeName) {
  * but with all the selectors scoped to `scopeName`
  */
 function scopeSelectors(styleTokens, scopeName) {
-  styleTokens.push({ type: "End" });
+  styleTokens.push({ type: END });
   let sections = styleTokens.reduce(
     (acc, token) => {
-      if (token.type === "Selector") {
+      if (token.type === SELECTOR) {
         acc.currentSection.push(insertScopeName(token.token, scopeName));
-      } else if (token.type === "Function") {
+      } else if (token.type === FUNCTION) {
         acc.sections.push(acc.currentSection.join(""));
         acc.sections.push(token.token);
         acc.currentSection = [];
-      } else if (token.type === "End") {
+      } else if (token.type === END) {
         acc.sections.push(acc.currentSection.join(""));
         return acc.sections;
       } else {

@@ -1,7 +1,7 @@
 {
   "name": "sinuous-style",
-  "version": "0.1.0",
-  "description": "Scoped styling for your Sinuous application",
+  "version": "0.1.1",
+  "description": "Scoped styling for Sinuous à la styled-jsx",
   "main": "./src/index.js",
   "keywords": [
     "sinuous",
