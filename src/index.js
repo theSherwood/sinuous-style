@@ -1,12 +1,12 @@
-import { api, html, svg } from "sinuous";
+import { api, html as sinuousHtml, svg as sinuousSvg } from "sinuous";
 import { root } from "sinuous/observable";
 import scopeApi from "./scopeApi";
 
-let { shtml, ssvg, html: ignoreScopingHtml, svg: ignoreScopingSvg } = scopeApi(
+let { html, svg } = scopeApi(
   api,
-  html,
-  svg,
+  sinuousHtml,
+  sinuousSvg,
   root
 );
 
-export { shtml, ssvg, ignoreScopingHtml as html, ignoreScopingSvg as svg };
+export { html, svg };

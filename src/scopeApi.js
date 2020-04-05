@@ -7,9 +7,9 @@ import { scopeStyles } from "./scopeStyles";
  * @param {Function} html - The default Sinuous `html` function
  * @param {Function} svg - The default Sinuous `svg` function
  * @param {Function} root - The default Sinuous `root` function
- * @return {{shtml, ssvg, html, svg}} `shtml` and `ssvg` for respecting scopes. `html` and `svg` for ignoring them. Note: the native sinuous `html` and `svg` will passively respect scopes. Do not use them if working with scoped styles.
+ * @return {{html, svg}} Replaces the `html` and `svg` sinuous functions
  */
-export default function scopeApi(api, html, svg, root) {
+export default function scopeApi(api, sinuousHtml, sinuousSvg, root) {
   let scopeName;
   let scopeNamesCache = new Set([]);
 
@@ -26,11 +26,11 @@ export default function scopeApi(api, html, svg, root) {
     `args` to be passed into `api.h`.
   */
   function scopeElementClasses(...args) {
-    if (args[0] === "style" && args[1] && (args[1].scoped || args[1].global)) {
-      let scoped = args[1].scoped;
+    if (args[0] === "style" && args[1] && (args[1].local || args[1].global)) {
+      let local = args[1].local;
       let className = args[1].class;
       let modifiedScopeName =
-        (scoped ? scopeName + "-scoped" : scopeName + "-global") +
+        (local ? scopeName + "-local" : scopeName + "-global") +
         (className ? "-" + className : "");
       if (
         scopeNamesCache.has(modifiedScopeName) ||
@@ -40,7 +40,7 @@ export default function scopeApi(api, html, svg, root) {
       }
       scopeNamesCache.add(modifiedScopeName);
       args[1].id = modifiedScopeName;
-      let rest = scoped ? scopeStyles(args.slice(2), scopeName) : args.slice(2);
+      let rest = local ? scopeStyles(args.slice(2), scopeName) : args.slice(2);
       let styleElement = root(() => originalH(args[0], args[1], ...rest));
       document.querySelector("body").append(styleElement);
       return [];
@@ -70,50 +70,47 @@ export default function scopeApi(api, html, svg, root) {
     return args;
   }
 
-  // Creates a new `html` or `svg` that propagate the scope
-  function propagateScope(fn) {
+  /*
+    Wraps Sinuous `html` or `svg`. The wrapped functions handle scoping.
+
+    The usage of that wrapped function is as follows:
+      1. html('new-scope-name')`...` - sets a new scope ('new-scope-name')
+      2. html()`...` - propagates the outer scope (useful in the case of conditionals)
+      3. html`...` - blocks the outer scope
+  */
+  function createApi(fn) {
     return (...args) => {
-      // If a new scopeName is set...
-      if (args[0][0] === "" && typeof args[1] === "string") {
-        // ...create a new scope...
+      if (!arguments.length) {
+        // html()`...` - propagate outer scope
+        return () => fn(arguments);
+      } else if (typeof args[0] === "string") {
+        // html(scopeName)`...` - set a new scope
+        return (...templateArgs) => {
+          let outerScopeName = scopeName;
+          // Create a new scope
+          scopeName = args[0];
+          // Call the Sinuous `html` or `svg`
+          let result = fn(...templateArgs);
+          // Return to outer scope
+          scopeName = outerScopeName;
+          return result;
+        };
+      } else if (Array.isArray(args[0])) {
+        // html`...` - block outer scope
         let outerScopeName = scopeName;
-        scopeName = args[1];
-        args[1] = "";
-        // ...call the Sinuous `html` or `svg`...
+        // Create empty scope
+        scopeName = "";
+        // Call the Sinuous `html` or `svg`
         let result = fn(...args);
-        // ...and return to the outer scope.
+        // Return to outer scope
         scopeName = outerScopeName;
         return result;
       }
-      // Otherwise, simply respect the outer scope.
-      return fn(...args);
     };
   }
 
-  const propagateScopeHtml = propagateScope(html);
-  const propagateScopeSvg = propagateScope(svg);
+  const html = createApi(sinuousHtml);
+  const svg = createApi(sinuousSvg);
 
-  // Creates a new `html` and `svg` that block scope
-  function blockScope(fn) {
-    return (...args) => {
-      let outerScopeName = scopeName;
-      // Create new, empty scope...
-      scopeName = "";
-      // ...call the Sinuous `html` or `svg`...
-      let result = fn(...args);
-      // ...and return to the outer scope.
-      scopeName = outerScopeName;
-      return result;
-    };
-  }
-
-  const blockScopeHtml = blockScope(html);
-  const blockScopeSvg = blockScope(svg);
-
-  return {
-    shtml: propagateScopeHtml,
-    ssvg: propagateScopeSvg,
-    html: blockScopeHtml,
-    svg: blockScopeSvg,
-  };
+  return { html, svg };
 }
