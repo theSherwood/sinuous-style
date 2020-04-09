@@ -203,8 +203,6 @@ Separating dynamic `local` styles from static `local` styles works in the same f
 
 ## Limitations
 
-At present, because of the way sinuous-style hijacks style elements, the style elements will not be removed from the dom when all corresponding component instances are removed from the dom.
-
 Usage of `>`, `~`, and `+` in selectors must be surrounded by whitespace.
 Do `div > p`, not `div>p`.
 
