@@ -14,13 +14,16 @@ export default [
         },
         compact: true,
         plugins: [
-          terser({
-            mangle: {
-              properties: {
-                reserved: ["api", "html", "svg", "cleanup", "root", "h", "hs"],
-              },
-            },
-          }),
+          terser(
+          // TODO: mangle properties appropriately
+          // {
+          //   mangle: {
+          //     properties: {
+          //       reserved: ["api", "html", "svg", "cleanup", "root", "h", "hs"],
+          //     },
+          //   },
+          // }
+          ),
         ],
       },
     ],
