@@ -13,7 +13,15 @@ export default [
           ["sinuous/observable"]: "S",
         },
         compact: true,
-        plugins: [terser()],
+        plugins: [
+          terser({
+            mangle: {
+              properties: {
+                reserved: ["api", "html", "svg", "cleanup", "root", "h", "hs"],
+              },
+            },
+          }),
+        ],
       },
     ],
   },
