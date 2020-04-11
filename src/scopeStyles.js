@@ -42,15 +42,17 @@ function tokenize(styles) {
   }
 
   let char;
+  let charsLength;
   for (let i = 0; i < styles.length; i++) {
     char = styles[i];
+    charsLength = chars.length;
     if (typeof char === "function") {
-      if (chars.length) {
+      if (charsLength) {
         pushToken();
       }
       tokens.push({ token: char, type: FUNCTION });
     } else if (bracketStack) {
-      if (!chars.length) {
+      if (!charsLength) {
         type = RULE_BLOCK;
       }
       chars.push(char);
@@ -64,40 +66,40 @@ function tokenize(styles) {
       }
     } else {
       if (char === "{") {
-        if (chars.length) {
+        if (charsLength) {
           pushToken();
         }
         bracketStack++;
         type = RULE_BLOCK;
         chars.push(char);
       } else if (char === ",") {
-        if (chars.length && type !== AT_RULE) {
+        if (charsLength && type !== AT_RULE) {
           pushToken();
         }
         type = COMMA;
         chars.push(char);
         pushToken();
       } else if (">+~".includes(char) && type !== SELECTOR) {
-        if (chars.length && type !== AT_RULE) {
+        if (charsLength && type !== AT_RULE) {
           pushToken();
           tokens.push({ token: char, type: LIMITER });
         } else {
           chars.push(char);
         }
       } else if (" \n\t\r".includes(char)) {
-        if (chars.length && ![WHITESPACE, AT_RULE].includes(type)) {
+        if (charsLength && ![WHITESPACE, AT_RULE].includes(type)) {
           pushToken();
         }
         type = WHITESPACE;
         chars.push(char);
       } else if (char === "@") {
-        if (chars.length) {
+        if (charsLength) {
           pushToken();
         }
         type = AT_RULE;
         chars.push(char);
       } else {
-        if (!chars.length) {
+        if (!charsLength) {
           type = SELECTOR;
           chars.push(char);
         } else if ([SELECTOR, AT_RULE].includes(type)) {
@@ -139,7 +141,6 @@ function insertScopeName(selector, scopeName) {
 }
 
 /**
- *
  * @param {Array} styleTokens - The result of `tokenize(styles)`
  * @param {String} scopeName - The className used to scope the `Selector` tokens
  * @return {Array} An array of the form of `styles` passed to `tokenize`,
@@ -147,25 +148,30 @@ function insertScopeName(selector, scopeName) {
  */
 function scopeSelectors(styleTokens, scopeName) {
   styleTokens.push({ type: END });
-  let sections = styleTokens.reduce(
+  let styles = styleTokens.reduce(
     (acc, token) => {
+      let current = acc[0];
+      let sections = acc[1];
       if (token.type === SELECTOR) {
-        acc.currentSection.push(insertScopeName(token.token, scopeName));
+        current.push(insertScopeName(token.token, scopeName));
       } else if (token.type === FUNCTION) {
-        acc.sections.push(acc.currentSection.join(""));
-        acc.sections.push(token.token);
-        acc.currentSection = [];
+        sections.push(current.join(""));
+        sections.push(token.token);
+        current = [];
       } else if (token.type === END) {
-        acc.sections.push(acc.currentSection.join(""));
-        return acc.sections;
+        sections.push(current.join(""));
+        return sections;
       } else {
-        acc.currentSection.push(token.token);
+        current.push(token.token);
       }
-      return acc;
+      return [current, sections];
     },
-    { currentSection: [], sections: [] }
+    [
+      [], // current section
+      [], // sections thus far
+    ]
   );
-  return sections;
+  return styles;
 }
 
 /**

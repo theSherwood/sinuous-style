@@ -74,24 +74,55 @@ function scopeElementClasses(...args) {
   }
 }
 
+/*
+  Wraps the callback in a newScopeName.
+*/
+function wrapInScope(newScopeName, callback) {
+  // Keep a reference to the outer scope.
+  let outerScopeName = scopeName;
+  // Create new scope.
+  scopeName = newScopeName;
+  let result = callback();
+  // Reset the scope to the outer scope.
+  scopeName = outerScopeName;
+  return result;
+}
+
 /* 
   Inject the scopeName into every element as an additional className.
+  Ensure that passed children are scoped lexically rather than dynamically.
   Return the `args` to be passed into `api.h` or `api.hs`.  
 */
 function injectScopeName(...args) {
-  let obj = args[1] ? args[1] : {};
-  let baseClass = obj.class || "";
+  /*
+    If the node is a component wrap its children in the scope
+    of where they apppear in the markup, not the scope of this
+    component. The `$s` annotation on this component contains
+    that `scopeName`.
+
+    This makes the scope lexical rather than dynamic.
+  */
+  if (typeof args[0] === "function") {
+    let staticScopeName = args[0].$s;
+    for (let i = 2; i < args.length; i++) {
+      let temp = args[i];
+      args[i] = () => wrapInScope(staticScopeName, temp);
+    }
+  }
+
+  let props = args[1] || {};
+  let baseClass = props.class || "";
   /*
     Set the current value of `scopeName` to a variable so that the changing 
     `scopeName` variable (in the case that the `baseClass` is a function) 
     is not captured by the closure.
   */
-  let scope = scopeName;
-  obj.class =
+  let staticScopeName = scopeName || "";
+  props.class =
     typeof baseClass === "function"
-      ? () => baseClass() + " " + scope
-      : baseClass + " " + scope;
-  args[1] = obj;
+      ? () => baseClass() + " " + staticScopeName
+      : baseClass + " " + staticScopeName;
+  args[1] = props;
   return args;
 }
 
@@ -103,55 +134,53 @@ function injectScopeName(...args) {
     2. html()`...` - propagates the outer scope (useful in the case of conditionals)
     3. html`...` - blocks the outer scope
 */
-function createApi(fn) {
+function wrapApiFunction(fn) {
   return (...args) => {
     if (Array.isArray(args[0])) {
       // html`...` - block outer scope
-      let outerScopeName = scopeName;
-      // Create empty scope
-      scopeName = "";
-      // Call the Sinuous `html` or `svg`
-      let result = fn(...args);
-      // Return to outer scope
-      scopeName = outerScopeName;
-      return result;
+      return wrapInScope("", () => fn(...args));
     } else {
       // html(scopeName)`...` - set a new scope
       // html()`...` - propagate outer scope
       return (...templateArgs) => {
-        let outerScopeName = scopeName;
-        // Create a new scope if a new scopeName was passed.
-        // Otherwise use the outer scopeName
-        scopeName = args.length ? args[0] : scopeName;
+        return wrapInScope(args.length ? args[0] : scopeName, () => {
+          /*
+            Annotate each child function with `$s` so that any
+            child components that render passed children can give
+            their children this `scopeName` rather than the `scopeName`
+            of that component.
 
-        // Track how many elements using this particular scopeName
-        // are present on the dom.
-        let staticScopeName = scopeName;
-        if (!scopeNameCounts[staticScopeName]) {
-          scopeNameCounts[staticScopeName] = 1;
-        } else scopeNameCounts[staticScopeName]++;
-        // Remove the corresponding style elements when the
-        // number of elements using this scopeName goes to 0.
-        cleanup(() => {
-          if (--scopeNameCounts[staticScopeName] < 1) {
-            delete scopeNameCounts[staticScopeName];
-            removeStyleByClassName(staticScopeName);
+            This makes the scope lexical rather than dynamic.
+          */
+          for (let item of templateArgs) {
+            if (typeof item === "function") {
+              item.$s = scopeName;
+            }
           }
+
+          // Track how many elements using this particular scopeName
+          // are present on the dom.
+          let staticScopeName = scopeName;
+          if (!scopeNameCounts[staticScopeName]) {
+            scopeNameCounts[staticScopeName] = 1;
+          } else scopeNameCounts[staticScopeName]++;
+          // Remove the corresponding style elements when the
+          // number of elements using this scopeName goes to 0.
+          cleanup(() => {
+            if (--scopeNameCounts[staticScopeName] < 1) {
+              delete scopeNameCounts[staticScopeName];
+              removeStyleByClassName(staticScopeName);
+            }
+          });
+          return fn(...templateArgs);
         });
-
-        // Call the Sinuous `html` or `svg`
-        let result = fn(...templateArgs);
-        // Return to outer scope
-        scopeName = outerScopeName;
-
-        return result;
       };
     }
   };
 }
 
 // To be used in place of Sinuous `html` and `svg`
-const html = createApi(sinuousHtml);
-const svg = createApi(sinuousSvg);
+const html = wrapApiFunction(sinuousHtml);
+const svg = wrapApiFunction(sinuousSvg);
 
 export { html, svg };
