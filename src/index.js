@@ -1,6 +1,7 @@
 import { scopeStyles } from "./scopeStyles";
 import { api, html as sinuousHtml, svg as sinuousSvg } from "sinuous";
 import { root, cleanup } from "sinuous/observable";
+import { isFunction } from "./utils";
 
 let scopeName;
 let scopeNameCounts = {};

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.4.2 - 2020-04-11
+
+### Fixed
+
+- Bundle error
+
 ## 0.4.1 - 2020-04-11
 
 ### Fixed
