@@ -102,11 +102,13 @@ function injectScopeName(...args) {
 
     This makes the scope lexical rather than dynamic.
   */
-  if (typeof args[0] === "function") {
+  if (isFunction(args[0])) {
     let staticScopeName = args[0].$s;
     for (let i = 2; i < args.length; i++) {
-      let temp = args[i];
-      args[i] = () => wrapInScope(staticScopeName, temp);
+      if (isFunction(args[i])) {
+        let temp = args[i];
+        args[i] = () => wrapInScope(staticScopeName, temp);
+      }
     }
   }
 
@@ -118,10 +120,9 @@ function injectScopeName(...args) {
     is not captured by the closure.
   */
   let staticScopeName = scopeName || "";
-  props.class =
-    typeof baseClass === "function"
-      ? () => baseClass() + " " + staticScopeName
-      : baseClass + " " + staticScopeName;
+  props.class = isFunction(baseClass)
+    ? () => baseClass() + " " + staticScopeName
+    : baseClass + " " + staticScopeName;
   args[1] = props;
   return args;
 }
@@ -153,7 +154,7 @@ function wrapApiFunction(fn) {
             This makes the scope lexical rather than dynamic.
           */
           for (let item of templateArgs) {
-            if (typeof item === "function") {
+            if (isFunction(item)) {
               item.$s = scopeName;
             }
           }

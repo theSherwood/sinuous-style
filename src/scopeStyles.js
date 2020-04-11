@@ -1,3 +1,5 @@
+import { isFunction } from "./utils";
+
 // Token types
 const RULE_BLOCK = 1;
 const COMMA = 2;
@@ -46,7 +48,7 @@ function tokenize(styles) {
   for (let i = 0; i < styles.length; i++) {
     char = styles[i];
     charsLength = chars.length;
-    if (typeof char === "function") {
+    if (isFunction(char)) {
       if (charsLength) {
         pushToken();
       }
