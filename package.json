@@ -13,7 +13,8 @@
   ],
   "scripts": {
     "build": "rollup -c",
-    "prepublishOnly": "rollup -c"
+    "prepublishOnly": "rollup -c",
+    "test": "tape -r esm test/*.js | faucet"
   },
   "homepage": "https://github.com/theSherwood/sinuous-style",
   "author": "Adam Sherwood <adam.the.sherwood@gmail.com>",
@@ -22,7 +23,19 @@
     "sinuous": "^0.27.0"
   },
   "devDependencies": {
+    "esm": "^3.2.25",
+    "faucet": "0.0.1",
+    "karma": "^4.4.1",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-coverage": "^2.0.1",
+    "karma-rollup-preprocessor": "^7.0.5",
+    "karma-sauce-launcher": "^4.1.2",
+    "karma-tap": "^4.2.0",
+    "karma-tap-pretty-reporter": "^4.2.0",
     "rollup": "^1.31.0",
-    "rollup-plugin-terser": "^5.2.0"
+    "rollup-plugin-terser": "^5.2.0",
+    "sinuous": "^0.27.0-beta.3",
+    "tape": "^4.13.2",
+    "tape-browser": "^4.13.0"
   }
 }
