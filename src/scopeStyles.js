@@ -1,4 +1,4 @@
-import { isFunction } from "./utils";
+import { isFunction } from './utils';
 
 // Token types
 const RULE_BLOCK = 1;
@@ -26,7 +26,7 @@ const END = 8;
  */
 function tokenize(styles) {
   styles = styles.flatMap((section) =>
-    typeof section === "string" ? section.split("") : section
+    typeof section === 'string' ? section.split('') : section
   );
 
   let tokens = [];
@@ -36,7 +36,7 @@ function tokenize(styles) {
 
   function pushToken() {
     tokens.push({
-      token: chars.join(""),
+      token: chars.join(''),
       type,
     });
     type = undefined;
@@ -58,43 +58,43 @@ function tokenize(styles) {
         type = RULE_BLOCK;
       }
       chars.push(char);
-      if (char === "{") {
+      if (char === '{') {
         bracketStack++;
-      } else if (char === "}") {
+      } else if (char === '}') {
         bracketStack--;
         if (!bracketStack) {
           pushToken();
         }
       }
     } else {
-      if (char === "{") {
+      if (char === '{') {
         if (charsLength) {
           pushToken();
         }
         bracketStack++;
         type = RULE_BLOCK;
         chars.push(char);
-      } else if (char === ",") {
+      } else if (char === ',') {
         if (charsLength && type !== AT_RULE) {
           pushToken();
         }
         type = COMMA;
         chars.push(char);
         pushToken();
-      } else if (">+~".includes(char) && type !== SELECTOR) {
+      } else if ('>+~'.includes(char) && type !== SELECTOR) {
         if (charsLength && type !== AT_RULE) {
           pushToken();
           tokens.push({ token: char, type: LIMITER });
         } else {
           chars.push(char);
         }
-      } else if (" \n\t\r".includes(char)) {
+      } else if (' \n\t\r'.includes(char)) {
         if (charsLength && ![WHITESPACE, AT_RULE].includes(type)) {
           pushToken();
         }
         type = WHITESPACE;
         chars.push(char);
-      } else if (char === "@") {
+      } else if (char === '@') {
         if (charsLength) {
           pushToken();
         }
@@ -134,12 +134,12 @@ function tokenize(styles) {
  */
 function insertScopeName(selector, scopeName) {
   let i = 0;
-  while (!"#.:[".includes(selector[i]) && i !== selector.length) {
+  while (!'#.:['.includes(selector[i]) && i !== selector.length) {
     i++;
   }
   let first = selector.slice(0, i);
   let second = selector.slice(i);
-  return first + "." + scopeName + second;
+  return first + '.' + scopeName + second;
 }
 
 /**
@@ -157,11 +157,11 @@ function scopeSelectors(styleTokens, scopeName) {
       if (token.type === SELECTOR) {
         current.push(insertScopeName(token.token, scopeName));
       } else if (token.type === FUNCTION) {
-        sections.push(current.join(""));
+        sections.push(current.join(''));
         sections.push(token.token);
         current = [];
       } else if (token.type === END) {
-        sections.push(current.join(""));
+        sections.push(current.join(''));
         return sections;
       } else {
         current.push(token.token);

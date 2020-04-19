@@ -1,7 +1,7 @@
-import { scopeStyles } from "./scopeStyles";
-import { api, html as sinuousHtml, svg as sinuousSvg } from "sinuous";
-import { root, cleanup } from "sinuous/observable";
-import { isFunction } from "./utils";
+import { scopeStyles } from './scopeStyles';
+import { api, html as sinuousHtml, svg as sinuousSvg } from 'sinuous';
+import { root, cleanup } from 'sinuous/observable';
+import { isFunction } from './utils';
 
 let scopeName;
 let scopeNameCounts = {};
@@ -18,14 +18,14 @@ api.hs = pipe(
   api.hs
 );
 
-let head = document.querySelector("head");
+let head = document.querySelector('head');
 
 function addStyleElement(styleElement) {
   head.append(styleElement);
 }
 function removeStyleByClassName(className) {
-  for (let element of head.querySelectorAll("." + className)) {
-    if (element.nodeName === "STYLE") {
+  for (let element of head.querySelectorAll('.' + className)) {
+    if (element.nodeName === 'STYLE') {
       /*
         Remove the style element id from the styleElementIds so that if another
         corresponding component is added, the style element will again
@@ -44,17 +44,17 @@ function removeStyleByClassName(className) {
     `args` to be passed into `api.h`.
   */
 function scopeElementClasses(...args) {
-  if (args[0] === "style" && args[1] && (args[1].local || args[1].global)) {
+  if (args[0] === 'style' && args[1] && (args[1].local || args[1].global)) {
     let props = args[1];
     let local = props.local;
     let className = props.class;
-    props.class = scopeName + " " + (props.class || "");
+    props.class = scopeName + ' ' + (props.class || '');
     let modifiedScopeName =
-      (local ? scopeName + "-local" : scopeName + "-global") +
-      (className ? "-" + className : "");
+      (local ? scopeName + '-local' : scopeName + '-global') +
+      (className ? '-' + className : '');
     if (
       styleElementIds.has(modifiedScopeName) ||
-      head.querySelector("#" + modifiedScopeName)
+      head.querySelector('#' + modifiedScopeName)
     ) {
       return [];
     }
@@ -114,16 +114,16 @@ function injectScopeName(...args) {
   }
 
   let props = args[1] || {};
-  let baseClass = props.class || "";
+  let baseClass = props.class || '';
   /*
     Set the current value of `scopeName` to a variable so that the changing 
     `scopeName` variable (in the case that the `baseClass` is a function) 
     is not captured by the closure.
   */
-  let staticScopeName = scopeName || "";
+  let staticScopeName = scopeName || '';
   props.class = isFunction(baseClass)
-    ? () => baseClass() + " " + staticScopeName
-    : baseClass + " " + staticScopeName;
+    ? () => baseClass() + ' ' + staticScopeName
+    : baseClass + ' ' + staticScopeName;
   args[1] = props;
   return args;
 }
@@ -140,7 +140,7 @@ function wrapApiFunction(fn) {
   return (...args) => {
     if (Array.isArray(args[0])) {
       // html`...` - block outer scope
-      return wrapInScope("", () => fn(...args));
+      return wrapInScope('', () => fn(...args));
     } else {
       // html(scopeName)`...` - set a new scope
       // html()`...` - propagate outer scope

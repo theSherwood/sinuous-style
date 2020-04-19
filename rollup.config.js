@@ -1,4 +1,8 @@
 import { terser } from "rollup-plugin-terser";
+import bundleSize from "rollup-plugin-size";
+import gzip from "rollup-plugin-gzip";
+import sourcemaps from "rollup-plugin-sourcemaps";
+import nodeResolve from "@rollup/plugin-node-resolve";
 
 export default [
   {
@@ -14,16 +18,22 @@ export default [
         },
         compact: true,
         plugins: [
-          terser(
-          // TODO: mangle properties appropriately
-          // {
-          //   mangle: {
-          //     properties: {
-          //       reserved: ["api", "html", "svg", "cleanup", "root", "h", "hs"],
-          //     },
-          //   },
-          // }
-          ),
+          bundleSize({
+            columnWidth: 25,
+          }),
+          sourcemaps(),
+          nodeResolve(),
+          terser({
+            compress: {
+              passes: 2,
+            },
+            mangle: {
+              properties: {
+                regex: /^_/,
+              },
+            },
+          }),
+          gzip(),
         ],
       },
     ],
