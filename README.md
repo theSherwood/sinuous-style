@@ -46,7 +46,7 @@ Start by importing the sinuous-style api.
 For ESM:
 
 ```js
-import { html, svg } from "sinuous-style";
+import { html, svg } from 'sinuous-style';
 ```
 
 For CDN:
@@ -74,7 +74,7 @@ For all examples, I will use `html`, but the examples apply similarly to `svg`.
 The user must pass a string to the call to `html` that will be injected as a class name on all elements within that scope.
 
 ```js
-let view = html("scope-name")`
+let view = html('scope-name')`
   <p>Some text.</p>
 `;
 ```
@@ -90,9 +90,11 @@ Results in:
 This is particularly useful in the case of conditionals and other nested calls to `html` that logically ought to belong to the same scope as the rest of the elements in the component.
 
 ```js
-let view = html("scope-name")`
+let view = html('scope-name')`
   <p>Some text.</p>
-  ${() => condition && html()`
+  ${() =>
+    condition &&
+    html()`
     <p>Some more text.</p>
   `}
 `;
@@ -108,9 +110,7 @@ Results in:
 **Block Outer Scopes**
 
 ```js
-let view = html`
-  <p>Some text.</p>
-`;
+let view = html` <p>Some text.</p> `;
 ```
 
 Results in:
@@ -122,11 +122,9 @@ Results in:
 And:
 
 ```js
-let view = html("scope-name")`
+let view = html('scope-name')`
   <p>Some text.</p>
-  ${() => condition && html`
-    <p>Some more text.</p>
-  `}
+  ${() => condition && html` <p>Some more text.</p> `}
 `;
 ```
 
@@ -175,7 +173,7 @@ Passed the `local` directive, the style element acts exactly like `<style global
 For example:
 
 ```js
-let view = html("scope-name")`
+let view = html('scope-name')`
   <p class="some-other-class">Some text.</p>
   <style local>
     p {
@@ -195,7 +193,7 @@ And the style element renders to the dom as:
 
 ```css
 p.scope-name {
-  padding: 5px
+  padding: 5px;
 }
 ```
 
