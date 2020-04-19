@@ -39,10 +39,10 @@ function removeStyleByClassName(className) {
 }
 
 /* 
-    If an appropriate style element, scope all selectors and inject the style element
-    directly onto the body of the page. Otherwise, inject the scopeName. Return the
-    `args` to be passed into `api.h`.
-  */
+  If an appropriate style element, scope all selectors and inject the style element
+  directly onto the body of the page. Otherwise, inject the scopeName. Return the
+  `args` to be passed into `api.h`.
+*/
 function scopeElementClasses(...args) {
   if (args[0] === 'style' && args[1] && (args[1].local || args[1].global)) {
     let props = args[1];
@@ -113,18 +113,22 @@ function injectScopeName(...args) {
     }
   }
 
-  let props = args[1] || {};
-  let baseClass = props.class || '';
   /*
-    Set the current value of `scopeName` to a variable so that the changing 
-    `scopeName` variable (in the case that the `baseClass` is a function) 
-    is not captured by the closure.
+  Set the current value of `scopeName` to a variable so that the changing 
+  `scopeName` variable (in the case that the `baseClass` is a function) 
+  is not captured by the closure.
   */
   let staticScopeName = scopeName || '';
-  props.class = isFunction(baseClass)
-    ? () => baseClass() + ' ' + staticScopeName
-    : baseClass + ' ' + staticScopeName;
-  args[1] = props;
+  if (staticScopeName) {
+    let props = args[1] || {};
+    let baseClass = props.class || '';
+    props.class = isFunction(baseClass)
+      ? () => baseClass() + ' ' + staticScopeName
+      : baseClass
+      ? baseClass + ' ' + staticScopeName
+      : staticScopeName;
+    args[1] = props;
+  }
   return args;
 }
 
