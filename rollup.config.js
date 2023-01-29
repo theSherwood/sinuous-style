@@ -35,6 +35,10 @@ export default [
           }),
           gzip(),
         ],
+      },{
+        file:     './module/sinuous-style.esm.js',
+        format:   'esm',
+        sourcemap:true
       },
     ],
   },
